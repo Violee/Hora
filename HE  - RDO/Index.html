@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulário com Modal</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="floating-container">
+        <div class="cards-section">
+            <div class="card">Card 1</div>
+            <div class="card">Card 2</div>
+        </div>
+        <div class="form-section">
+            <form id="info-form">
+                <label for="date">Data:</label>
+                <input type="date" id="date" name="date" required>
+
+                <label for="service">Frente de Serviço:</label>
+                <input type="text" id="service" name="service" required>
+
+                <label for="supervisor">Encarregado Responsável:</label>
+                <input type="email" id="supervisor" name="supervisor" required>
+
+                <label for="employee-search">Lista de Funcionários:</label>
+                <input type="text" id="employee-search" name="employee-search" placeholder="Pesquisar funcionário...">
+
+                <ul id="employee-suggestions" class="suggestions-list"></ul>
+
+                <button type="submit" id="submit-button" disabled>Enviar</button>
+                <button type="button" id="clear-button">Cancelar</button>
+                <button type="button" id="verify-button">Verificar Equipes e Pessoas Selecionadas</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de confirmação -->
+    <div id="confirmation-modal" class="modal">
+        <div class="modal-content">
+            <h2>Confirmação</h2>
+            <div id="confirmation-details"></div>
+            <button id="confirm-button">Confirmar</button>
+            <button id="cancel-button">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- Modal de verificação de seleção -->
+    <div id="verification-modal" class="modal">
+        <div class="modal-content">
+            <h2>Equipes e Pessoas Selecionadas</h2>
+            <div id="verification-details" class="scrollable-content"></div>
+            <button id="close-verification-modal">Fechar</button>
+        </div>
+    </div>
+
+    <script>
+        const employees = ['Funcionário 1', 'Funcionário 2', 'Funcionário 3', 'Funcionário 4', 'Funcionário 5'];
+        const employeeSearch = document.getElementById('employee-search');
+        const suggestionsList = document.getElementById('employee-suggestions');
+        const submitButton = document.getElementById('submit-button');
+        const clearButton = document.getElementById('clear-button');
+        const confirmationModal = document.getElementById('confirmation-modal');
+        const confirmationDetails = document.getElementById('confirmation-details');
+        const confirmButton = document.getElementById('confirm-button');
+        const cancelButton = document.getElementById('cancel-button');
+        const verificationModal = document.getElementById('verification-modal');
+        const verificationDetails = document.getElementById('verification-details');
+        const closeVerificationModal = document.getElementById('close-verification-modal');
+
+        let selectedEmployees = [];
+
+        employeeSearch.addEventListener('input', function() {
+            const query = this.value.toLowerCase();
+            suggestionsList.innerHTML = ''; // Limpa as sugestões anteriores
+
+            if (query) {
+                const filteredEmployees = employees.filter(employee => employee.toLowerCase().includes(query));
+                filteredEmployees.forEach(employee => {
+                    const suggestionItem = document.createElement('li');
+                    suggestionItem.textContent = employee;
+                    suggestionItem.addEventListener('click', function() {
+                        addEmployee(employee);
+                        employeeSearch.value = ''; // Limpa a barra de pesquisa
+                        suggestionsList.innerHTML = ''; // Limpa as sugestões
+                    });
+                    suggestionsList.appendChild(suggestionItem);
+                });
+            }
+        });
+
+        function addEmployee(name) {
+            if (!selectedEmployees.includes(name)) {
+                selectedEmployees.push(name);
+                checkFormCompletion(); // Verifica se o formulário deve ser habilitado
+            }
+        }
+
+        function checkFormCompletion() {
+            const isFormComplete = Array.from(document.querySelectorAll('#info-form input')).every(input => input.value);
+            submitButton.disabled = !isFormComplete;
+        }
+
+        document.getElementById("info-form").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            const date = document.getElementById("date").value;
+            const service = document.getElementById("service").value;
+            const supervisor = document.getElementById("supervisor").value;
+
+            const confirmationText = `
+                <p><strong>Data:</strong> ${date}</p>
+                <p><strong>Frente de Serviço:</strong> ${service}</p>
+                <p><strong>Encarregado Responsável:</strong> ${supervisor}</p>
+                <p><strong>Funcionários Selecionados:</strong></p>
+                <ul>${selectedEmployees.map(employee => `<li>${employee}</li>`).join('')}</ul>
+            `;
+            confirmationDetails.innerHTML = confirmationText;
+
+            confirmationModal.style.display = 'flex';
+        });
+
+        confirmButton.addEventListener('click', function() {
+            confirmationModal.style.display = 'none';
+            alert("Formulário enviado com sucesso!");
+            window.location.href = 'index.html'; // Redireciona para a tela inicial
+        });
+
+        cancelButton.addEventListener('click', function() {
+            confirmationModal.style.display = 'none';
+        });
+
+        clearButton.addEventListener('click', function() {
+            document.getElementById("info-form").reset();
+            selectedEmployees = [];
+            submitButton.disabled = true;
+        });
+
+        document.getElementById('verify-button').addEventListener('click', function() {
+            const verificationText = `
+                <h3>Funcionários Selecionados:</h3>
+                <ul>${selectedEmployees.map(employee => `<li>${employee}</li>`).join('')}</ul>
+            `;
+            verificationDetails.innerHTML = verificationText;
+
+            verificationModal.style.display = 'flex';
+        });
+
+        closeVerificationModal.addEventListener('click', function() {
+            verificationModal.style.display = 'none';
+        });
+    </script>
+</body>
+</html>
